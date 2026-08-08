@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Rice — Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#FBF7EE; --ivory-deep:#F2EAD6; --paper:#FFFDF8;
+  --emerald-900:#0A3A29; --emerald-700:#0F5C40; --emerald-600:#146B4B; --emerald-500:#1B7C57;
+  --gold-700:#A9863C; --gold-500:#C7A34E; --gold-300:#E4CD8C; --gold-100:#F3E7C4;
+  --charcoal:#241F19; --charcoal-70:#4B443A; --charcoal-45:#7B7263;
+  --line:#E2D8BE; --danger:#B0392A; --danger-bg:#FBEAE7;
+  --radius-s:4px; --radius-m:10px; --radius-l:18px;
+  --shadow-soft:0 12px 30px -14px rgba(20,30,20,.28); --shadow-deep:0 26px 60px -20px rgba(10,20,15,.4);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{margin:0; background:var(--ivory); color:var(--charcoal); font-family:'Jost',sans-serif; font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:'Fraunces',serif; font-weight:600; margin:0 0 .3em; color:var(--charcoal);}
+p{margin:0 0 1em; color:var(--charcoal-70);}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+input,textarea,select{font-family:inherit; font-size:.92rem;}
+:focus-visible{outline:2.5px solid var(--gold-500); outline-offset:2px;}
+img{max-width:100%; display:block;}
+
+/* ============ LOGIN ============ */
+.login-wrap{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  background:radial-gradient(circle at 30% 20%, #123f2c, var(--emerald-900) 60%);
+}
+.login-card{
+  background:var(--paper); border-radius:var(--radius-l); padding:44px 38px; width:100%; max-width:380px;
+  box-shadow:var(--shadow-deep); text-align:center;
+}
+.login-mark{color:var(--emerald-700); margin-bottom:14px;}
+.login-card h1{font-size:1.5rem;}
+.login-card .sub{font-size:.82rem; color:var(--charcoal-45); margin-bottom:26px;}
+.login-card input{
+  width:100%; padding:13px 15px; border:1.5px solid var(--line); border-radius:var(--radius-s);
+  background:var(--ivory); margin-bottom:14px; text-align:center; letter-spacing:.05em;
+}
+.login-card input:focus{border-color:var(--emerald-500); outline:none;}
+.login-error{color:var(--danger); font-size:.8rem; margin:-6px 0 14px; display:none;}
+.login-error.show{display:block;}
+.login-note{
+  margin-top:22px; padding-top:18px; border-top:1px solid var(--line); font-size:.72rem; color:var(--charcoal-45); text-align:left; line-height:1.5;
+}
+
+/* ============ APP SHELL ============ */
+.app{display:none;}
+.app.active{display:block;}
+.topbar{
+  background:var(--emerald-900); color:var(--ivory); padding:14px 26px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100; border-bottom:1px solid rgba(199,163,78,.25); gap:16px; flex-wrap:wrap;
+}
+.topbar .brand{display:flex; align-items:center; gap:10px;}
+.topbar .brand svg{color:var(--gold-500);}
+.topbar .brand-text{display:flex; flex-direction:column; line-height:1.15;}
+.topbar .brand-text .name{font-family:'Fraunces',serif; font-weight:700; font-size:1.15rem;}
+.topbar .brand-text .sub{font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-300);}
+.topbar-actions{display:flex; gap:10px; align-items:center;}
+.tb-link{font-size:.82rem; color:rgba(251,247,238,.85); padding:8px 12px; border-radius:100px; border:1px solid rgba(199,163,78,.3);}
+.tb-link:hover{background:rgba(199,163,78,.14); color:var(--gold-300);}
+
+.tabs{display:flex; gap:4px; padding:0 26px; background:var(--paper); border-bottom:1px solid var(--line); overflow-x:auto;}
+.tab-btn{
+  padding:15px 18px; font-size:.88rem; font-weight:500; color:var(--charcoal-45); border:none; background:none;
+  border-bottom:2.5px solid transparent; white-space:nowrap;
+}
+.tab-btn.active{color:var(--emerald-700); border-bottom-color:var(--emerald-700); font-weight:600;}
+.tab-panel{display:none; padding:26px; max-width:1200px; margin:0 auto;}
+.tab-panel.active{display:block;}
+
+/* ============ TOOLBAR ============ */
+.toolbar{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; flex-wrap:wrap;}
+.toolbar-left{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.search-input{padding:10px 14px; border:1.5px solid var(--line); border-radius:100px; background:var(--paper); min-width:220px;}
+.filter-select{padding:10px 14px; border:1.5px solid var(--line); border-radius:100px; background:var(--paper);}
+.stat-chips{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;}
+.stat-chip{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:12px 18px; min-width:110px;}
+.stat-chip .n{font-family:'Fraunces',serif; font-weight:700; font-size:1.4rem; color:var(--emerald-700);}
+.stat-chip .l{font-size:.72rem; color:var(--charcoal-45); text-transform:uppercase; letter-spacing:.06em;}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:100px; font-weight:600; font-size:.85rem; border:1.5px solid transparent; transition:all .18s var(--ease);}
+.btn-primary{background:var(--emerald-700); color:var(--ivory);}
+.btn-primary:hover{background:var(--emerald-600);}
+.btn-gold{background:var(--gold-500); color:var(--emerald-900);}
+.btn-gold:hover{background:var(--gold-300);}
+.btn-outline{border-color:var(--line); background:var(--paper); color:var(--charcoal-70);}
+.btn-outline:hover{border-color:var(--emerald-500); color:var(--emerald-700);}
+.btn-danger-outline{border-color:var(--danger); background:var(--paper); color:var(--danger);}
+.btn-danger-outline:hover{background:var(--danger-bg);}
+.btn-sm{padding:7px 13px; font-size:.76rem;}
+.btn-icon{width:34px; height:34px; padding:0; border-radius:50%; justify-content:center; border:1px solid var(--line); background:var(--paper); color:var(--charcoal-70);}
+.btn-icon:hover{background:var(--ivory-deep);}
+.btn-icon.danger:hover{background:var(--danger-bg); color:var(--danger); border-color:var(--danger);}
+
+/* ============ PRODUCT TABLE ============ */
+.data-table{width:100%; border-collapse:collapse; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden;}
+.data-table th{text-align:left; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--charcoal-45); padding:12px 14px; background:var(--ivory-deep); border-bottom:1px solid var(--line);}
+.data-table td{padding:11px 14px; border-bottom:1px solid var(--line); font-size:.86rem; vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:var(--ivory-deep);}
+.row-thumb{width:42px; height:42px; border-radius:8px; overflow:hidden; background:var(--ivory-deep); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.row-thumb img{width:100%; height:100%; object-fit:cover;}
+.row-thumb svg{color:var(--emerald-700);}
+.row-name-cell{display:flex; align-items:center; gap:12px;}
+.row-name{font-weight:500;}
+.row-sku{font-size:.72rem; color:var(--charcoal-45);}
+.badge-pill{font-size:.68rem; padding:3px 9px; border-radius:100px; background:var(--ivory-deep); color:var(--charcoal-70); display:inline-block;}
+.row-actions{display:flex; gap:6px;}
+.empty-state{text-align:center; padding:50px 20px; color:var(--charcoal-45);}
+.empty-state svg{color:var(--line); margin-bottom:14px;}
+
+/* ============ SUBCATEGORY GROUPS ============ */
+.subcat-group{margin-bottom:34px;}
+.subcat-group-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.subcat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px;}
+.subcat-card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:16px; display:flex; flex-direction:column; gap:10px;}
+.subcat-card .top{display:flex; align-items:center; gap:12px;}
+.subcat-icon{width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--emerald-800, var(--emerald-700)); flex-shrink:0;}
+.subcat-name{font-weight:600; font-size:.9rem;}
+.subcat-count{font-size:.72rem; color:var(--charcoal-45);}
+.subcat-card .actions{display:flex; gap:8px; margin-top:2px;}
+
+/* ============ MODAL ============ */
+.overlay{position:fixed; inset:0; background:rgba(15,25,20,.55); z-index:500; opacity:0; visibility:hidden; transition:all .25s var(--ease);}
+.overlay.open{opacity:1; visibility:visible;}
+.modal{
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-46%); width:min(640px,92vw);
+  max-height:90vh; overflow-y:auto; background:var(--paper); border-radius:var(--radius-l);
+  z-index:601; padding:32px; box-shadow:var(--shadow-deep); opacity:0; visibility:hidden; transition:all .25s var(--ease);
+}
+.modal.open{opacity:1; visibility:visible; transform:translate(-50%,-50%);}
+.modal.modal-sm{width:min(420px,92vw);}
+.modal-close{position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:var(--paper);}
+.modal-close:hover{background:var(--ivory-deep);}
+.modal h3{font-size:1.3rem; margin-bottom:4px;}
+.modal .sub{font-size:.82rem; color:var(--charcoal-45); margin-bottom:22px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block; font-size:.78rem; font-weight:600; margin-bottom:6px; color:var(--charcoal-70);}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-s); background:var(--ivory);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus{border-color:var(--emerald-500); outline:none;}
+.form-group textarea{resize:vertical; min-height:70px;}
+.form-row2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.form-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+.form-hint{font-size:.72rem; color:var(--charcoal-45); margin-top:5px;}
+.modal-footer{display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:20px; border-top:1px solid var(--line);}
+
+/* size rows */
+.size-rows{display:flex; flex-direction:column; gap:8px; margin-bottom:6px;}
+.size-row-item{display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center;}
+.size-row-item input{padding:9px 11px;}
+
+/* features rows */
+.feat-input-note{font-size:.72rem; color:var(--charcoal-45); margin-top:4px;}
+
+/* image upload */
+.image-drop{
+  border:1.5px dashed var(--line); border-radius:var(--radius-m); padding:20px; text-align:center; cursor:pointer;
+  background:var(--ivory); transition:all .2s var(--ease); position:relative;
+}
+.image-drop:hover{border-color:var(--gold-500); background:var(--gold-100);}
+.image-drop input[type="file"]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+.image-drop svg{color:var(--charcoal-45); margin-bottom:8px;}
+.image-drop .txt{font-size:.82rem; color:var(--charcoal-45);}
+.image-preview-wrap{display:flex; align-items:center; gap:14px; margin-bottom:10px;}
+.image-preview{width:88px; height:88px; border-radius:var(--radius-s); overflow:hidden; background:var(--ivory-deep); border:1px solid var(--line);}
+.image-preview img{width:100%; height:100%; object-fit:cover;}
+
+/* icon picker */
+.icon-picker{display:grid; grid-template-columns:repeat(6,1fr); gap:8px;}
+.icon-opt{
+  aspect-ratio:1/1; border-radius:var(--radius-s); border:1.5px solid var(--line); background:var(--ivory);
+  display:flex; align-items:center; justify-content:center; color:var(--charcoal-70);
+}
+.icon-opt.active{border-color:var(--emerald-700); background:var(--emerald-700); color:var(--ivory);}
+
+/* color picker */
+.color-picker{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
+.color-opt{aspect-ratio:1/1; border-radius:var(--radius-s); border:2px solid transparent; cursor:pointer;}
+.color-opt.active{border-color:var(--emerald-700); box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--emerald-700);}
+
+/* confirm modal */
+.confirm-icon{width:52px; height:52px; border-radius:50%; background:var(--danger-bg); color:var(--danger); display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+
+/* toast */
+.toast{
+  position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); z-index:800;
+  background:var(--emerald-900); color:var(--ivory); padding:13px 22px; border-radius:100px; font-size:.86rem;
+  display:flex; align-items:center; gap:10px; box-shadow:var(--shadow-deep); opacity:0; visibility:hidden; transition:all .3s var(--ease);
+}
+.toast.show{opacity:1; visibility:visible; transform:translateX(-50%) translateY(0);}
+.toast svg{color:var(--gold-300);}
+
+/* data panel */
+.data-card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:22px; margin-bottom:18px;}
+.data-card h4{font-size:1rem; margin-bottom:6px;}
+.data-card p{font-size:.85rem; margin-bottom:14px;}
+.notice-box{background:var(--gold-100); border:1px solid var(--gold-300); border-radius:var(--radius-m); padding:16px 18px; font-size:.83rem; color:var(--charcoal-70); margin-bottom:24px; line-height:1.6;}
+.notice-box strong{color:var(--charcoal);}
+
+@media (max-width:760px){
+  .form-row2, .form-row3{grid-template-columns:1fr;}
+  .tab-panel{padding:18px;}
+  .modal{padding:22px;}
+  .icon-picker{grid-template-columns:repeat(4,1fr);}
+  .color-picker{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG SPRITE ============ -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="ic-grain" viewBox="0 0 24 24"><path d="M12 2c3 3 5 7 5 11a5 5 0 01-10 0c0-4 2-8 5-11z" fill="currentColor"/><path d="M12 6v14" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5"/></symbol>
+    <symbol id="ic-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 2l8 3.5v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6L12 2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8.5 12l2.4 2.4L16 9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M4 20c8-1 14-7 15-16-9 1-15 7-15 16z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 18c3-3 6-6 12-13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="ic-box" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5-9 5-9-5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M3 8v9l9 5 9-5V8M12 13v9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-noodle" viewBox="0 0 24 24"><path d="M4 11c2-4 4 4 6 0s4 4 6 0 4 4 4 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 15h18l-2 6H5l-2-6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-bottle" viewBox="0 0 24 24"><path d="M10 2h4v4l2 2v13a1 1 0 01-1 1H9a1 1 0 01-1-1V8l2-2V2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 13h8" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="ic-sack" viewBox="0 0 24 24"><path d="M8 3h8l1 4H7l1-4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 7h12l1.5 12a2 2 0 01-2 2.2H6.5A2 2 0 014.5 19L6 7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-jar" viewBox="0 0 24 24"><path d="M7 3h10v3H7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 6h12l1 13a2 2 0 01-2 2H7a2 2 0 01-2-2L6 6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-pepper" viewBox="0 0 24 24"><path d="M9 4c2 0 3 1.5 3 3-2 0-4 2-5 5-1 3 0 6 2 7-4 0-7-3-7-7 0-4 3-8 7-8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M10 4c1-1 2-2 4-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="ic-oil" viewBox="0 0 24 24"><path d="M12 2c2.5 3.5 6 8 6 12a6 6 0 01-12 0c0-4 3.5-8.5 6-12z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M12 10v4M12 17.5v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="ic-inbox" viewBox="0 0 24 24"><path d="M3 12h5l2 3h4l2-3h5M3 12l2-8h14l2 8M3 12v6a2 2 0 002 2h14a2 2 0 002-2v-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0115.4-6.4L21 8M3 12a9 9 0 0015.4 6.4L21 16M21 3v5h-5M3 21v-5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="login-mark"><svg width="40" height="40" viewBox="0 0 24 24"><use href="#ic-grain"/></svg></div>
+    <h1>Royal Rice Admin</h1>
+    <div class="sub">Manage products, categories &amp; images</div>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Admin email" autocomplete="username" required>
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+      <div class="login-error" id="loginError">Incorrect email or password. Please try again.</div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Log In</button>
+    </form>
+    <div class="login-note">
+      <strong>Note:</strong> This is a real Firebase account login — only users you've explicitly added in the Firebase Console (Authentication tab) can sign in here.
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADMIN APP ============ -->
+<div class="app" id="adminApp">
+  <div class="topbar">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24"><use href="#ic-grain"/></svg>
+      <span class="brand-text"><span class="name">Royal Rice</span><span class="sub">Admin Panel</span></span>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" class="tb-link" target="_blank">View Live Site</a>
+      <button class="tb-link" id="logoutBtn" type="button" style="background:none; border:1px solid rgba(199,163,78,.3); color:rgba(251,247,238,.85);">Log Out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products">Products</button>
+    <button class="tab-btn" data-tab="subcats">Categories &amp; Subcategories</button>
+    <button class="tab-btn" data-tab="data">Data &amp; Backup</button>
+  </div>
+
+  <!-- ===== PRODUCTS TAB ===== -->
+  <div class="tab-panel active" id="tab-products">
+    <div class="stat-chips" id="productStats"></div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <input type="text" class="search-input" id="productSearch" placeholder="Search products...">
+        <select class="filter-select" id="productCatFilter">
+          <option value="">All Categories</option>
+          <option value="rice">Rice</option>
+          <option value="restaurant">Restaurant Supplies</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="addProductBtn"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-plus"/></svg> Add Product</button>
+    </div>
+    <div id="productTableWrap"></div>
+  </div>
+
+  <!-- ===== SUBCATEGORIES TAB ===== -->
+  <div class="tab-panel" id="tab-subcats">
+    <div class="notice-box">
+      Rice and Restaurant Supplies are the two fixed top-level categories (they're built into the site's navigation and homepage). What you manage here are the <strong>subcategories</strong> underneath each — e.g. Basmati, Sella, Sauces &amp; Sweets — which is where products actually get organized.
+    </div>
+    <div class="subcat-group">
+      <div class="subcat-group-head">
+        <h3 style="margin:0;">Rice Subcategories</h3>
+        <button class="btn btn-outline btn-sm" data-add-sub="rice"><svg width="13" height="13" viewBox="0 0 24 24"><use href="#ic-plus"/></svg> Add Subcategory</button>
+      </div>
+      <div class="subcat-grid" id="subcatGridRice"></div>
+    </div>
+    <div class="subcat-group">
+      <div class="subcat-group-head">
+        <h3 style="margin:0;">Restaurant Supplies Subcategories</h3>
+        <button class="btn btn-outline btn-sm" data-add-sub="restaurant"><svg width="13" height="13" viewBox="0 0 24 24"><use href="#ic-plus"/></svg> Add Subcategory</button>
+      </div>
+      <div class="subcat-grid" id="subcatGridRestaurant"></div>
+    </div>
+  </div>
+
+  <!-- ===== DATA TAB ===== -->
+  <div class="tab-panel" id="tab-data">
+    <div class="notice-box">
+      <strong>How this works now:</strong> Every change you make here is saved to Firestore (your cloud database) — it syncs live to your website for every visitor, from any device, immediately. No need to keep editing from the same browser.
+    </div>
+    <div class="data-card" id="seedCard" style="display:none; border-color:var(--gold-500); background:var(--gold-100);">
+      <h4>Your Database Is Empty</h4>
+      <p>Load the starting catalog into Firestore to get going — you can edit or delete anything afterward.</p>
+      <button class="btn btn-gold" id="seedBtn"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-upload"/></svg> Seed Starting Catalog</button>
+    </div>
+    <div class="data-card">
+      <h4>Export Catalog</h4>
+      <p>Download your current products and subcategories as a JSON file — useful as a backup.</p>
+      <button class="btn btn-outline" id="exportBtn"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-download"/></svg> Export JSON</button>
+    </div>
+    <div class="data-card">
+      <h4>Import Catalog</h4>
+      <p>Restore a previously exported JSON file. This will replace everything currently in Firestore, live on the site.</p>
+      <label class="btn btn-outline" style="position:relative; overflow:hidden;">
+        <svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-upload"/></svg> Import JSON
+        <input type="file" id="importInput" accept="application/json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+      </label>
+    </div>
+    <div class="data-card">
+      <h4>Reset to Original Catalog</h4>
+      <p>Wipes everything in Firestore and restores the site's original built-in product catalog.</p>
+      <button class="btn btn-danger-outline" id="resetBtn"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-refresh"/></svg> Reset to Defaults</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY ============ -->
+<div class="overlay" id="overlay"></div>
+
+<!-- ============ PRODUCT FORM MODAL ============ -->
+<div class="modal" id="productModal" role="dialog" aria-modal="true">
+  <button class="modal-close" id="closeProductModal" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-close"/></svg></button>
+  <h3 id="productModalTitle">Add Product</h3>
+  <div class="sub">Fill in the product details below.</div>
+  <form id="productForm">
+    <input type="hidden" id="pfId">
+    <div class="form-group">
+      <label for="pfImage">Product Image</label>
+      <div id="imagePreviewWrap" style="display:none;" class="image-preview-wrap">
+        <div class="image-preview"><img id="imagePreviewImg" src="" alt=""></div>
+        <button type="button" class="btn btn-sm btn-danger-outline" id="removeImageBtn">Remove Image</button>
+      </div>
+      <div class="image-drop" id="imageDropZone">
+        <svg width="24" height="24" viewBox="0 0 24 24"><use href="#ic-upload"/></svg>
+        <div class="txt">Click or drop an image here (JPG/PNG, auto-resized)</div>
+        <input type="file" id="pfImageInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="form-row2">
+      <div class="form-group">
+        <label for="pfName">Product Name</label>
+        <input type="text" id="pfName" required placeholder="e.g. Royal Basmati Super Kernel">
+      </div>
+      <div class="form-group">
+        <label for="pfBadge">Badge (optional)</label>
+        <select id="pfBadge">
+          <option value="">None</option>
+          <option value="New">New</option>
+          <option value="Bestseller">Bestseller</option>
+          <option value="Premium">Premium</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row2">
+      <div class="form-group">
+        <label for="pfCategory">Category</label>
+        <select id="pfCategory">
+          <option value="rice">Rice</option>
+          <option value="restaurant">Restaurant Supplies</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="pfSubcategory">Subcategory</label>
+        <select id="pfSubcategory"></select>
+      </div>
+    </div>
+
+    <div class="form-row2">
+      <div class="form-group">
+        <label for="pfPrice">Base Price (Rs.)</label>
+        <input type="number" id="pfPrice" min="0" step="1" required placeholder="e.g. 450">
+      </div>
+      <div class="form-group">
+        <label for="pfUnit">Unit Label</label>
+        <input type="text" id="pfUnit" required placeholder="e.g. kg, bottle, pack, bag">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Pack Sizes</label>
+      <div class="size-rows" id="sizeRows"></div>
+      <button type="button" class="btn btn-outline btn-sm" id="addSizeRowBtn"><svg width="12" height="12" viewBox="0 0 24 24"><use href="#ic-plus"/></svg> Add Size</button>
+      <div class="form-hint">Label (e.g. "5kg") and price multiplier relative to the base price (e.g. 1 for the base pack, 1.95 for double).</div>
+    </div>
+
+    <div class="form-group">
+      <label for="pfDesc">Description</label>
+      <textarea id="pfDesc" required placeholder="Short product description shown on cards and detail page"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="pfFeatures">Product Highlights</label>
+      <textarea id="pfFeatures" placeholder="One highlight per line, e.g.&#10;Aged 12 months minimum&#10;Extra-long grain"></textarea>
+      <div class="feat-input-note">One highlight per line — shown as a checklist on the product page.</div>
+    </div>
+
+    <div class="form-row3">
+      <div class="form-group">
+        <label for="pfOrigin">Origin</label>
+        <input type="text" id="pfOrigin" placeholder="e.g. Punjab, Pakistan">
+      </div>
+      <div class="form-group">
+        <label for="pfPackaging">Packaging</label>
+        <input type="text" id="pfPackaging" placeholder="e.g. PP woven bag">
+      </div>
+      <div class="form-group">
+        <label for="pfShelf">Shelf Life</label>
+        <input type="text" id="pfShelf" placeholder="e.g. 18 months">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" id="cancelProductBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Product</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ SUBCATEGORY FORM MODAL ============ -->
+<div class="modal modal-sm" id="subcatModal" role="dialog" aria-modal="true">
+  <button class="modal-close" id="closeSubcatModal" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ic-close"/></svg></button>
+  <h3 id="subcatModalTitle">Add Subcategory</h3>
+  <div class="sub" id="subcatModalSub">Under Rice</div>
+  <form id="subcatForm">
+    <input type="hidden" id="sfKey">
+    <input type="hidden" id="sfCategory">
+    <div class="form-group">
+      <label for="sfLabel">Subcategory Name</label>
+      <input type="text" id="sfLabel" required placeholder="e.g. Jasmine Rice">
+    </div>
+    <div class="form-group">
+      <label>Icon</label>
+      <div class="icon-picker" id="iconPicker"></div>
+    </div>
+    <div class="form-group">
+      <label>Color Theme</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" id="cancelSubcatBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Subcategory</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div class="modal modal-sm" id="confirmModal" role="dialog" aria-modal="true">
+  <div class="confirm-icon"><svg width="24" height="24" viewBox="0 0 24 24"><use href="#ic-alert"/></svg></div>
+  <h3 id="confirmTitle">Are you sure?</h3>
+  <p id="confirmMessage">This action cannot be undone.</p>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" id="confirmCancelBtn">Cancel</button>
+    <button type="button" class="btn btn-danger-outline" id="confirmOkBtn" style="background:var(--danger); color:#fff; border-color:var(--danger);">Delete</button>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"><svg width="16" height="16" viewBox="0 0 24 24"><use href="#ic-check"/></svg><span id="toastMsg">Saved</span></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDocs, setDoc, deleteDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+  import {
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyCpJEFeQVrR-a4VvAhQBrFxqxMuWgQXCDI",
+    authDomain: "royal-rice-c5162.firebaseapp.com",
+    projectId: "royal-rice-c5162",
+    storageBucket: "royal-rice-c5162.firebasestorage.app",
+    messagingSenderId: "835219232726",
+    appId: "1:835219232726:web:d5694fda350de761207677"
+  };
+
+  var app = initializeApp(firebaseConfig);
+  var db = getFirestore(app);
+  var auth = getAuth(app);
+
+  window.RoyalRiceDB = {
+    auth: {
+      signIn: function(email, password){ return signInWithEmailAndPassword(auth, email, password); },
+      signOut: function(){ return signOut(auth); },
+      onChange: function(cb){ return onAuthStateChanged(auth, cb); }
+    },
+    getProducts: async function(){
+      var snap = await getDocs(collection(db, "products"));
+      var list = [];
+      snap.forEach(function(d){ list.push(d.data()); });
+      return list;
+    },
+    saveProduct: async function(id, data){ await setDoc(doc(db, "products", id), data); },
+    deleteProduct: async function(id){ await deleteDoc(doc(db, "products", id)); },
+    getSubcats: async function(){
+      var snap = await getDocs(collection(db, "subcategories"));
+      var obj = {};
+      snap.forEach(function(d){ obj[d.id] = d.data(); });
+      return obj;
+    },
+    saveSubcat: async function(key, data){ await setDoc(doc(db, "subcategories", key), data); },
+    deleteSubcat: async function(key){ await deleteDoc(doc(db, "subcategories", key)); },
+    batchSaveProducts: async function(list){
+      var batch = writeBatch(db);
+      list.forEach(function(p){ batch.set(doc(db, "products", p.id), p); });
+      await batch.commit();
+    },
+    batchSaveSubcats: async function(obj){
+      var batch = writeBatch(db);
+      Object.keys(obj).forEach(function(k){ batch.set(doc(db, "subcategories", k), obj[k]); });
+      await batch.commit();
+    },
+    clearCollection: async function(name){
+      var snap = await getDocs(collection(db, name));
+      if (snap.empty) return;
+      var batch = writeBatch(db);
+      snap.forEach(function(d){ batch.delete(d.ref); });
+      await batch.commit();
+    }
+  };
+  window.dispatchEvent(new CustomEvent("royalricedb:ready"));
+</script>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Auth & data now run through window.RoyalRiceDB (see the
+   Firebase module script above) instead of a local password
+   and localStorage.
+   ============================================================ */
+
+/* ============================================================
+   DEFAULT CATALOG (mirrors index.html — used to seed storage)
+   ============================================================ */
+var DEFAULT_SUBCATEGORIES = {
+  "basmati": {label:"Basmati Rice", category:"rice", icon:"ic-grain", color:"linear-gradient(155deg,#EAF3EC,#CFE4D4)"},
+  "sella": {label:"Sella Rice", category:"rice", icon:"ic-grain", color:"linear-gradient(155deg,#F5EAD3,#E7D3A6)"},
+  "brown": {label:"Brown Rice", category:"rice", icon:"ic-grain", color:"linear-gradient(155deg,#EAE0D1,#D7C4A9)"},
+  "white-basmati": {label:"White Basmati Rice", category:"rice", icon:"ic-grain", color:"linear-gradient(155deg,#FBF7EE,#F0E7CD)"},
+  "sauces-sweets": {label:"Sauces & Sweets", category:"restaurant", icon:"ic-bottle", color:"linear-gradient(155deg,#F6E7DC,#E7C6AE)"},
+  "noodles-pastas": {label:"Noodles & Pastas", category:"restaurant", icon:"ic-noodle", color:"linear-gradient(155deg,#F3EAD3,#E3D2A4)"},
+  "flours": {label:"Flours", category:"restaurant", icon:"ic-sack", color:"linear-gradient(155deg,#F4EEDF,#E6D8B9)"},
+  "cooking-oils": {label:"Cooking Oils", category:"restaurant", icon:"ic-oil", color:"linear-gradient(155deg,#EFE6CE,#DFC98F)"},
+  "masala-spices": {label:"Masala & Spices", category:"restaurant", icon:"ic-pepper", color:"linear-gradient(155deg,#F3DED0,#E3AF8E)"},
+  "dry-ingredients": {label:"Dry Ingredients", category:"restaurant", icon:"ic-jar", color:"linear-gradient(155deg,#EFE9DA,#DCCBA3)"}
+};
+
+var DEFAULT_PRODUCTS = [
+  {id:"rb-super-kernel", name:"Royal Basmati Super Kernel", category:"rice", subcategory:"basmati", price:450, unit:"kg", badge:"Bestseller",
+   desc:"Extra-long aged 1121 Basmati with a signature aroma and fluffy texture — our flagship grain.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Aged 12 months minimum","Extra-long grain (8mm+)","Naturally aromatic","Low breakage, hand-graded"],
+   origin:"Punjab, Pakistan", packaging:"Woven jute / PP bag", shelf:"24 months"},
+  {id:"rb-classic", name:"Royal Basmati Classic", category:"rice", subcategory:"basmati", price:380, unit:"kg",
+   desc:"Everyday aged Basmati — reliable quality and aroma for daily family cooking.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Aged 6 months minimum","Long grain","Consistent cooking result","Great value for daily use"],
+   origin:"Punjab, Pakistan", packaging:"PP woven bag", shelf:"18 months"},
+  {id:"rb-gold-reserve", name:"Royal Basmati Gold Reserve", category:"rice", subcategory:"basmati", price:650, unit:"kg", badge:"Premium",
+   desc:"Two-year aged reserve-grade Basmati, hand-selected for weddings and fine dining.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95}],
+   features:["Aged 24 months","Superior elongation on cooking","Deep natural aroma","Limited seasonal batches"],
+   origin:"Punjab, Pakistan", packaging:"Premium gift sack", shelf:"36 months"},
+  {id:"rs-parboiled", name:"Royal Sella Parboiled Rice", category:"rice", subcategory:"sella", price:320, unit:"kg",
+   desc:"Golden parboiled Sella rice, ideal for biryani and pulao that holds its grain shape.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Parboiled for firmness","Ideal for biryani","Non-sticky on cooking","High yield per kg"],
+   origin:"Sindh, Pakistan", packaging:"PP woven bag", shelf:"18 months"},
+  {id:"rs-golden", name:"Royal Sella Golden", category:"rice", subcategory:"sella", price:360, unit:"kg", badge:"New",
+   desc:"Extra-aged golden Sella with a richer colour and firmer bite, favoured by professional kitchens.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Extra-aged","Restaurant favourite","Distinct golden hue","Consistent grain length"],
+   origin:"Sindh, Pakistan", packaging:"PP woven bag", shelf:"18 months"},
+  {id:"rbr-basmati", name:"Royal Brown Basmati", category:"rice", subcategory:"brown", price:420, unit:"kg", badge:"New",
+   desc:"Wholegrain Basmati with the bran layer intact — nutty flavour and a healthier daily choice.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95}],
+   features:["Wholegrain, minimally milled","Higher fibre content","Nutty aroma","Aged Basmati base"],
+   origin:"Punjab, Pakistan", packaging:"PP woven bag", shelf:"12 months"},
+  {id:"rbr-wholegrain", name:"Royal Brown Rice Wholegrain", category:"rice", subcategory:"brown", price:350, unit:"kg",
+   desc:"Everyday wholegrain brown rice, a wholesome staple for home cooking.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95}],
+   features:["100% wholegrain","Nutrient-retentive milling","Firm, hearty texture","Everyday pricing"],
+   origin:"Sindh, Pakistan", packaging:"PP woven bag", shelf:"12 months"},
+  {id:"rwb-everyday", name:"Royal White Basmati Everyday", category:"rice", subcategory:"white-basmati", price:300, unit:"kg",
+   desc:"Light, aged white Basmati for everyday meals — clean flavour, dependable results.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Aged for aroma","Milled for a lighter grain","Everyday household pricing","Cooks evenly"],
+   origin:"Punjab, Pakistan", packaging:"PP woven bag", shelf:"18 months"},
+  {id:"rwb-steam", name:"Royal White Basmati Steam", category:"rice", subcategory:"white-basmati", price:340, unit:"kg",
+   desc:"Steam-processed white Basmati that stays separate and fluffy — a restaurant kitchen favourite.",
+   sizes:[{l:"5kg",m:1},{l:"10kg",m:1.95},{l:"25kg",m:4.7}],
+   features:["Steam-processed","Non-sticky grains","Ideal for pulao & fried rice","Consistent batch quality"],
+   origin:"Punjab, Pakistan", packaging:"PP woven bag", shelf:"18 months"},
+  {id:"sw-soy", name:"Royal Soy Sauce 1L", category:"restaurant", subcategory:"sauces-sweets", price:480, unit:"bottle",
+   desc:"Rich, well-balanced soy sauce for Chinese and continental kitchen use.",
+   sizes:[{l:"1L",m:1},{l:"5L",m:4.6}],
+   features:["Balanced umami flavour","Foodservice-grade bottle","Consistent salt profile","Bulk carton available"],
+   origin:"Imported / Locally bottled", packaging:"PET bottle / carton", shelf:"18 months"},
+  {id:"sw-chiligarlic", name:"Royal Chili Garlic Sauce 1L", category:"restaurant", subcategory:"sauces-sweets", price:420, unit:"bottle",
+   desc:"Bold chili-garlic sauce for fast food, Chinese and fusion menus.",
+   sizes:[{l:"1L",m:1},{l:"5L",m:4.6}],
+   features:["Robust heat & garlic notes","Kitchen-tested consistency","Foodservice bottle","Bulk carton available"],
+   origin:"Locally bottled", packaging:"PET bottle / carton", shelf:"18 months"},
+  {id:"sw-gulabjamun", name:"Royal Gulab Jamun Mix 1kg", category:"restaurant", subcategory:"sauces-sweets", price:650, unit:"pack",
+   desc:"Ready-to-fry Gulab Jamun mix for consistent, restaurant-quality dessert service.",
+   sizes:[{l:"1kg",m:1},{l:"5kg",m:4.7}],
+   features:["Consistent texture batch to batch","Easy prep for high-volume kitchens","Rich milk-solid base","Bulk pricing available"],
+   origin:"Locally packed", packaging:"Sealed pouch / carton", shelf:"9 months"},
+  {id:"np-chowmein", name:"Royal Chowmein Noodles 800g", category:"restaurant", subcategory:"noodles-pastas", price:260, unit:"pack",
+   desc:"Quick-cook chowmein noodles built for fast-paced restaurant service.",
+   sizes:[{l:"800g",m:1},{l:"10kg carton",m:11}],
+   features:["Fast cook time","Holds texture after stir-fry","Foodservice packaging","Bulk carton pricing"],
+   origin:"Locally manufactured", packaging:"Pouch / carton", shelf:"12 months"},
+  {id:"np-penne", name:"Royal Penne Pasta 500g", category:"restaurant", subcategory:"noodles-pastas", price:220, unit:"pack",
+   desc:"Durum-style penne pasta that holds sauce well for Italian menu staples.",
+   sizes:[{l:"500g",m:1},{l:"10kg carton",m:18}],
+   features:["Firm al-dente bite","Holds sauce evenly","Consistent shape & size","Bulk carton pricing"],
+   origin:"Locally manufactured", packaging:"Pouch / carton", shelf:"18 months"},
+  {id:"np-spaghetti", name:"Royal Spaghetti 500g", category:"restaurant", subcategory:"noodles-pastas", price:220, unit:"pack",
+   desc:"Classic spaghetti for everyday Italian and fusion dishes.",
+   sizes:[{l:"500g",m:1},{l:"10kg carton",m:18}],
+   features:["Reliable cook time","Smooth, consistent strands","Foodservice packaging","Bulk carton pricing"],
+   origin:"Locally manufactured", packaging:"Pouch / carton", shelf:"18 months"},
+  {id:"fl-atta", name:"Royal Chakki Atta 10kg", category:"restaurant", subcategory:"flours", price:1450, unit:"bag",
+   desc:"Stone-ground whole wheat atta for naan, roti and paratha service.",
+   sizes:[{l:"10kg",m:1},{l:"40kg",m:3.8}],
+   features:["Stone-ground texture","Consistent gluten strength","Ideal for tandoor use","Bulk bag pricing"],
+   origin:"Punjab, Pakistan", packaging:"Woven bag", shelf:"6 months"},
+  {id:"fl-maida", name:"Royal Maida (Refined Flour) 10kg", category:"restaurant", subcategory:"flours", price:1350, unit:"bag",
+   desc:"Fine refined flour for bakery, naan and Chinese-style kitchens.",
+   sizes:[{l:"10kg",m:1},{l:"40kg",m:3.8}],
+   features:["Fine, consistent milling","Reliable for baking & frying","High-volume kitchen ready","Bulk bag pricing"],
+   origin:"Punjab, Pakistan", packaging:"Woven bag", shelf:"6 months"},
+  {id:"fl-cornflour", name:"Royal Cornflour 1kg", category:"restaurant", subcategory:"flours", price:280, unit:"pack",
+   desc:"Fine cornflour for thickening, coating and Chinese-style cooking.",
+   sizes:[{l:"1kg",m:1},{l:"10kg carton",m:9.5}],
+   features:["Smooth, lump-free texture","Ideal thickener","Consistent coating results","Bulk carton pricing"],
+   origin:"Locally packed", packaging:"Pouch / carton", shelf:"12 months"},
+  {id:"oil-canola", name:"Royal Canola Cooking Oil 5L", category:"restaurant", subcategory:"cooking-oils", price:2450, unit:"tin",
+   desc:"Light, high-smoke-point canola oil for frying and everyday cooking.",
+   sizes:[{l:"5L",m:1},{l:"20L drum",m:3.7}],
+   features:["High smoke point","Light, neutral flavour","Foodservice tin","Bulk drum pricing"],
+   origin:"Refined locally", packaging:"Tin / drum", shelf:"12 months"},
+  {id:"oil-banaspati", name:"Royal Banaspati Ghee 5kg", category:"restaurant", subcategory:"cooking-oils", price:3200, unit:"tin",
+   desc:"Rich vegetable ghee for traditional cooking, frying and bakery use.",
+   sizes:[{l:"5kg",m:1},{l:"16kg tin",m:3.0}],
+   features:["Rich, traditional flavour","Stable at high heat","Foodservice tin","Bulk tin pricing"],
+   origin:"Locally refined", packaging:"Tin", shelf:"12 months"},
+  {id:"ms-garam", name:"Royal Garam Masala 200g", category:"restaurant", subcategory:"masala-spices", price:380, unit:"pack",
+   desc:"House-blended garam masala with a warm, balanced spice profile.",
+   sizes:[{l:"200g",m:1},{l:"5kg bulk",m:22}],
+   features:["Small-batch blended","Balanced warm spice notes","Consistent aroma","Bulk bag available"],
+   origin:"Blended in Karachi", packaging:"Pouch / bulk bag", shelf:"12 months"},
+  {id:"ms-chilipowder", name:"Royal Chili Powder 500g", category:"restaurant", subcategory:"masala-spices", price:420, unit:"pack",
+   desc:"Vibrant, consistent-heat chili powder for curries, marinades and grills.",
+   sizes:[{l:"500g",m:1},{l:"10kg bulk",m:18}],
+   features:["Consistent heat level","Vivid natural colour","Finely ground","Bulk bag available"],
+   origin:"Sourced & ground in Pakistan", packaging:"Pouch / bulk bag", shelf:"12 months"},
+  {id:"ms-biryani", name:"Royal Biryani Masala 200g", category:"restaurant", subcategory:"masala-spices", price:350, unit:"pack",
+   desc:"Signature biryani spice blend, balanced for restaurant-scale batches.",
+   sizes:[{l:"200g",m:1},{l:"5kg bulk",m:22}],
+   features:["Signature house blend","Scales well for large batches","Balanced aromatic profile","Bulk bag available"],
+   origin:"Blended in Karachi", packaging:"Pouch / bulk bag", shelf:"12 months"},
+  {id:"di-chana", name:"Royal Chana Dal 1kg", category:"restaurant", subcategory:"dry-ingredients", price:320, unit:"pack",
+   desc:"Split chickpea lentils, cleaned and graded for curries and sides.",
+   sizes:[{l:"1kg",m:1},{l:"25kg bulk",m:22}],
+   features:["Hand-cleaned & graded","Uniform cooking time","Low impurity rate","Bulk bag pricing"],
+   origin:"Sindh, Pakistan", packaging:"Pouch / bulk bag", shelf:"12 months"},
+  {id:"di-moong", name:"Royal Moong Dal 1kg", category:"restaurant", subcategory:"dry-ingredients", price:340, unit:"pack",
+   desc:"Split mung lentils, ideal for daily dal service and khichdi.",
+   sizes:[{l:"1kg",m:1},{l:"25kg bulk",m:22}],
+   features:["Hand-cleaned & graded","Quick, even cooking","Consistent colour & size","Bulk bag pricing"],
+   origin:"Punjab, Pakistan", packaging:"Pouch / bulk bag", shelf:"12 months"},
+  {id:"di-driedchili", name:"Royal Dried Red Chilies 500g", category:"restaurant", subcategory:"dry-ingredients", price:450, unit:"pack",
+   desc:"Sun-dried whole red chilies for tempering, grinding and pickling.",
+   sizes:[{l:"500g",m:1},{l:"10kg bulk",m:18}],
+   features:["Sun-dried naturally","Deep, consistent colour","Whole pod, hand-sorted","Bulk bag pricing"],
+   origin:"Sindh, Pakistan", packaging:"Pouch / bulk bag", shelf:"12 months"}
+];
+
+var ICON_CHOICES = ["ic-grain","ic-bottle","ic-noodle","ic-sack","ic-oil","ic-pepper","ic-jar","ic-box","ic-leaf"];
+var COLOR_CHOICES = [
+  "linear-gradient(155deg,#EAF3EC,#CFE4D4)","linear-gradient(155deg,#F5EAD3,#E7D3A6)","linear-gradient(155deg,#EAE0D1,#D7C4A9)",
+  "linear-gradient(155deg,#FBF7EE,#F0E7CD)","linear-gradient(155deg,#F6E7DC,#E7C6AE)","linear-gradient(155deg,#F3EAD3,#E3D2A4)",
+  "linear-gradient(155deg,#F4EEDF,#E6D8B9)","linear-gradient(155deg,#EFE6CE,#DFC98F)","linear-gradient(155deg,#F3DED0,#E3AF8E)",
+  "linear-gradient(155deg,#EFE9DA,#DCCBA3)"
+];
+
+/* ============================================================
+   STORAGE LAYER (Firestore via window.RoyalRiceDB)
+   ============================================================ */
+async function loadProducts(){
+  try{ return await window.RoyalRiceDB.getProducts(); }
+  catch(e){ showToast("Couldn't load products from the database.", true); return []; }
+}
+async function saveProduct(id, data){
+  try{ await window.RoyalRiceDB.saveProduct(id, data); }
+  catch(e){ showToast("Failed to save — check your connection.", true); throw e; }
+}
+async function deleteProductDoc(id){
+  try{ await window.RoyalRiceDB.deleteProduct(id); }
+  catch(e){ showToast("Failed to delete — check your connection.", true); throw e; }
+}
+async function loadSubcats(){
+  try{ return await window.RoyalRiceDB.getSubcats(); }
+  catch(e){ showToast("Couldn't load subcategories from the database.", true); return {}; }
+}
+async function saveSubcatDoc(key, data){
+  try{ await window.RoyalRiceDB.saveSubcat(key, data); }
+  catch(e){ showToast("Failed to save — check your connection.", true); throw e; }
+}
+async function deleteSubcatDoc(key){
+  try{ await window.RoyalRiceDB.deleteSubcat(key); }
+  catch(e){ showToast("Failed to delete — check your connection.", true); throw e; }
+}
+async function seedDefaultCatalog(){
+  await window.RoyalRiceDB.batchSaveProducts(DEFAULT_PRODUCTS);
+  await window.RoyalRiceDB.batchSaveSubcats(DEFAULT_SUBCATEGORIES);
+}
+async function checkAndOfferSeed(){
+  var card = qs("#seedCard");
+  if (!card) return;
+  card.style.display = products.length === 0 ? "block" : "none";
+}
+
+/* live in-memory state, re-synced from Firestore on each refresh */
+var products = [];
+var subcats = {};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function qs(s,ctx){ return (ctx||document).querySelector(s); }
+function qsa(s,ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(s)); }
+function fmt(n){ return "Rs. " + Math.round(n).toLocaleString("en-PK"); }
+function slugify(str){
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+}
+function uniqueId(base){
+  var id = base, n = 1;
+  while (products.some(function(p){ return p.id === id; })){ id = base + "-" + (++n); }
+  return id;
+}
+function uniqueSubKey(base){
+  var key = base, n = 1;
+  while (subcats[key]){ key = base + "-" + (++n); }
+  return key;
+}
+function showToast(msg, isError){
+  var t = qs("#toast");
+  qs("#toastMsg").textContent = msg;
+  t.style.background = isError ? "var(--danger)" : "var(--emerald-900)";
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+
+/* ============================================================
+   LOGIN (Firebase Authentication)
+   ============================================================ */
+function handleAuthChange(user){
+  if (user){
+    qs("#loginScreen").style.display = "none";
+    qs("#adminApp").classList.add("active");
+    initApp();
+  } else {
+    qs("#loginScreen").style.display = "flex";
+    qs("#adminApp").classList.remove("active");
+  }
+}
+function startAuthWatch(){
+  window.RoyalRiceDB.auth.onChange(handleAuthChange);
+}
+if (window.RoyalRiceDB) startAuthWatch();
+else window.addEventListener("royalricedb:ready", startAuthWatch, {once:true});
+
+qs("#loginForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var email = qs("#loginEmail").value;
+  var password = qs("#loginPassword").value;
+  qs("#loginError").classList.remove("show");
+  window.RoyalRiceDB.auth.signIn(email, password).catch(function(){
+    qs("#loginError").classList.add("show");
+  });
+});
+qs("#logoutBtn").addEventListener("click", function(){
+  window.RoyalRiceDB.auth.signOut();
+});
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function bindTabs(){
+  qsa(".tab-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      qsa(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+      qsa(".tab-panel").forEach(function(p){ p.classList.remove("active"); });
+      btn.classList.add("active");
+      qs("#tab-"+btn.getAttribute("data-tab")).classList.add("active");
+    });
+  });
+}
+
+/* ============================================================
+   OVERLAY / MODAL HELPERS
+   ============================================================ */
+var overlay;
+function openModal(id){ qs("#"+id).classList.add("open"); overlay.classList.add("open"); }
+function closeModal(id){
+  qs("#"+id).classList.remove("open");
+  if (!qs(".modal.open")) overlay.classList.remove("open");
+}
+function closeAllModals(){ qsa(".modal").forEach(function(m){ m.classList.remove("open"); }); overlay.classList.remove("open"); }
+
+var pendingConfirmAction = null;
+function askConfirm(title, message, onConfirm){
+  qs("#confirmTitle").textContent = title;
+  qs("#confirmMessage").textContent = message;
+  pendingConfirmAction = onConfirm;
+  openModal("confirmModal");
+}
+
+/* ============================================================
+   PRODUCTS TAB
+   ============================================================ */
+function renderProductStats(){
+  var riceCount = products.filter(function(p){ return p.category==="rice"; }).length;
+  var restCount = products.filter(function(p){ return p.category==="restaurant"; }).length;
+  var withImg = products.filter(function(p){ return !!p.image; }).length;
+  qs("#productStats").innerHTML =
+    '<div class="stat-chip"><div class="n">'+products.length+'</div><div class="l">Total Products</div></div>' +
+    '<div class="stat-chip"><div class="n">'+riceCount+'</div><div class="l">Rice</div></div>' +
+    '<div class="stat-chip"><div class="n">'+restCount+'</div><div class="l">Restaurant Supplies</div></div>' +
+    '<div class="stat-chip"><div class="n">'+withImg+'</div><div class="l">With Photos</div></div>';
+}
+
+function renderProductTable(){
+  var searchVal = (qs("#productSearch").value || "").toLowerCase();
+  var catVal = qs("#productCatFilter").value;
+  var list = products.filter(function(p){
+    if (catVal && p.category !== catVal) return false;
+    if (searchVal && p.name.toLowerCase().indexOf(searchVal) === -1) return false;
+    return true;
+  });
+
+  var wrap = qs("#productTableWrap");
+  if (list.length === 0){
+    wrap.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24"><use href="#ic-inbox"/></svg><p>No products match your filters.</p></div>';
+    return;
+  }
+
+  var rows = list.map(function(p){
+    var subLabel = subcats[p.subcategory] ? subcats[p.subcategory].label : p.subcategory;
+    var thumb = p.image
+      ? '<img src="'+p.image+'" alt="">'
+      : '<svg width="20" height="20" viewBox="0 0 24 24"><use href="#'+((subcats[p.subcategory]&&subcats[p.subcategory].icon)||"ic-grain")+'"/></svg>';
+    return '<tr>' +
+      '<td><div class="row-name-cell"><div class="row-thumb">'+thumb+'</div><div><div class="row-name">'+p.name+'</div><div class="row-sku">'+p.id+'</div></div></div></td>' +
+      '<td><span class="badge-pill">'+(p.category==="rice"?"Rice":"Restaurant")+'</span></td>' +
+      '<td>'+subLabel+'</td>' +
+      '<td>'+fmt(p.price)+' / '+p.unit+'</td>' +
+      '<td>'+(p.badge ? '<span class="badge-pill">'+p.badge+'</span>' : '&mdash;')+'</td>' +
+      '<td><div class="row-actions">' +
+        '<button class="btn-icon" data-edit="'+p.id+'" aria-label="Edit"><svg width="14" height="14" viewBox="0 0 24 24"><use href="#ic-edit"/></svg></button>' +
+        '<button class="btn-icon danger" data-delete="'+p.id+'" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24"><use href="#ic-trash"/></svg></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join("");
+
+  wrap.innerHTML = '<table class="data-table"><thead><tr><th>Product</th><th>Category</th><th>Subcategory</th><th>Price</th><th>Badge</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+
+  qsa("[data-edit]", wrap).forEach(function(btn){
+    btn.addEventListener("click", function(){ openProductForm(btn.getAttribute("data-edit")); });
+  });
+  qsa("[data-delete]", wrap).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var id = btn.getAttribute("data-delete");
+      var p = products.find(function(x){ return x.id === id; });
+      askConfirm("Delete this product?", 'This will permanently remove "'+(p?p.name:id)+'" from the catalog.', async function(){
+        await deleteProductDoc(id);
+        await refreshProducts();
+        showToast("Product deleted.");
+      });
+    });
+  });
+}
+
+async function refreshProducts(){
+  products = await loadProducts();
+  renderProductStats();
+  renderProductTable();
+  checkAndOfferSeed();
+}
+
+/* ---- product form ---- */
+var currentSizeRows = [];
+var currentImageData = null;
+var currentImageUploadPromise = null;
+
+/* ============================================================
+   CLOUDINARY (image hosting)
+   Fill in your own Cloud Name and unsigned Upload Preset below —
+   see cloudinary.com > Settings > Upload > Upload presets
+   (Signing Mode must be "Unsigned").
+   ============================================================ */
+var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
+var CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+
+async function uploadToCloudinary(file){
+  if (CLOUDINARY_CLOUD_NAME === "YOUR_CLOUD_NAME"){
+    showToast("Cloudinary isn't set up yet — see CLOUDINARY_CLOUD_NAME in the code.", true);
+    throw new Error("Cloudinary not configured");
+  }
+  var formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  var res = await fetch("https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/image/upload", {
+    method: "POST", body: formData
+  });
+  if (!res.ok) throw new Error("Cloudinary upload failed");
+  var data = await res.json();
+  return data.secure_url;
+}
+
+function populateSubcategorySelect(category, selectedKey){
+  var sel = qs("#pfSubcategory");
+  var opts = Object.keys(subcats).filter(function(k){ return subcats[k].category === category; });
+  sel.innerHTML = opts.map(function(k){ return '<option value="'+k+'">'+subcats[k].label+'</option>'; }).join("");
+  if (selectedKey && opts.indexOf(selectedKey) !== -1) sel.value = selectedKey;
+}
+
+function renderSizeRows(){
+  qs("#sizeRows").innerHTML = currentSizeRows.map(function(s, i){
+    return '<div class="size-row-item">' +
+      '<input type="text" data-size-label="'+i+'" placeholder="Label e.g. 5kg" value="'+(s.l||"")+'">' +
+      '<input type="number" step="0.01" min="0" data-size-mult="'+i+'" placeholder="Multiplier e.g. 1" value="'+(s.m!=null?s.m:"")+'">' +
+      '<button type="button" class="btn-icon danger" data-remove-size="'+i+'" aria-label="Remove"><svg width="13" height="13" viewBox="0 0 24 24"><use href="#ic-trash"/></svg></button>' +
+    '</div>';
+  }).join("");
+  qsa("[data-size-label]", qs("#sizeRows")).forEach(function(inp){
+    inp.addEventListener("input", function(){ currentSizeRows[+inp.getAttribute("data-size-label")].l = inp.value; });
+  });
+  qsa("[data-size-mult]", qs("#sizeRows")).forEach(function(inp){
+    inp.addEventListener("input", function(){ currentSizeRows[+inp.getAttribute("data-size-mult")].m = parseFloat(inp.value)||0; });
+  });
+  qsa("[data-remove-size]", qs("#sizeRows")).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      currentSizeRows.splice(+btn.getAttribute("data-remove-size"), 1);
+      renderSizeRows();
+    });
+  });
+}
+qs("#addSizeRowBtn").addEventListener("click", function(){
+  currentSizeRows.push({l:"", m:1});
+  renderSizeRows();
+});
+
+function resetImagePicker(){
+  currentImageData = null;
+  currentImageUploadPromise = null;
+  qs("#imagePreviewWrap").style.display = "none";
+  qs("#pfImageInput").value = "";
+}
+qs("#removeImageBtn").addEventListener("click", resetImagePicker);
+qs("#pfImageInput").addEventListener("change", function(e){
+  var file = e.target.files[0];
+  if (!file) return;
+
+  var dropZone = qs("#imageDropZone");
+  var dropText = dropZone.querySelector(".txt");
+  var origText = dropText.textContent;
+  dropText.textContent = "Uploading...";
+  dropZone.style.pointerEvents = "none";
+
+  currentImageUploadPromise = uploadToCloudinary(file).then(function(url){
+    currentImageData = url;
+    qs("#imagePreviewImg").src = url;
+    qs("#imagePreviewWrap").style.display = "flex";
+    dropText.textContent = origText;
+    dropZone.style.pointerEvents = "";
+    currentImageUploadPromise = null;
+    return url;
+  }).catch(function(err){
+    dropText.textContent = origText;
+    dropZone.style.pointerEvents = "";
+    currentImageUploadPromise = null;
+    throw err;
+  });
+});
+
+
+function openProductForm(editId){
+  var editing = !!editId;
+  var p = editing ? products.find(function(x){ return x.id === editId; }) : null;
+
+  qs("#productModalTitle").textContent = editing ? "Edit Product" : "Add Product";
+  qs("#pfId").value = editing ? p.id : "";
+  qs("#pfName").value = editing ? p.name : "";
+  qs("#pfBadge").value = editing ? (p.badge || "") : "";
+  qs("#pfCategory").value = editing ? p.category : "rice";
+  populateSubcategorySelect(qs("#pfCategory").value, editing ? p.subcategory : null);
+  qs("#pfPrice").value = editing ? p.price : "";
+  qs("#pfUnit").value = editing ? p.unit : "";
+  qs("#pfDesc").value = editing ? p.desc : "";
+  qs("#pfFeatures").value = editing && p.features ? p.features.join("\n") : "";
+  qs("#pfOrigin").value = editing ? (p.origin||"") : "";
+  qs("#pfPackaging").value = editing ? (p.packaging||"") : "";
+  qs("#pfShelf").value = editing ? (p.shelf||"") : "";
+
+  currentSizeRows = editing && p.sizes ? JSON.parse(JSON.stringify(p.sizes)) : [{l:"", m:1}];
+  renderSizeRows();
+
+  currentImageData = editing && p.image ? p.image : null;
+  if (currentImageData){
+    qs("#imagePreviewImg").src = currentImageData;
+    qs("#imagePreviewWrap").style.display = "flex";
+  } else {
+    qs("#imagePreviewWrap").style.display = "none";
+  }
+  qs("#pfImageInput").value = "";
+
+  openModal("productModal");
+}
+
+qs("#pfCategory").addEventListener("change", function(){
+  populateSubcategorySelect(this.value, null);
+});
+qs("#addProductBtn").addEventListener("click", function(){ openProductForm(null); });
+qs("#closeProductModal").addEventListener("click", function(){ closeModal("productModal"); });
+qs("#cancelProductBtn").addEventListener("click", function(){ closeModal("productModal"); });
+
+qs("#productForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  var editId = qs("#pfId").value;
+  var name = qs("#pfName").value.trim();
+  var validSizes = currentSizeRows.filter(function(s){ return s.l && s.l.trim(); });
+  if (validSizes.length === 0) validSizes = [{l:"1 unit", m:1}];
+
+  var featuresList = qs("#pfFeatures").value.split("\n").map(function(f){ return f.trim(); }).filter(Boolean);
+
+  if (currentImageUploadPromise){
+    showToast("Finishing image upload...");
+    try{ await currentImageUploadPromise; }catch(e){ showToast("Image upload failed — try again.", true); return; }
+  }
+
+  var productData = {
+    id: editId || uniqueId(slugify(name)),
+    name: name,
+    category: qs("#pfCategory").value,
+    subcategory: qs("#pfSubcategory").value,
+    price: parseFloat(qs("#pfPrice").value) || 0,
+    unit: qs("#pfUnit").value.trim() || "unit",
+    desc: qs("#pfDesc").value.trim(),
+    sizes: validSizes,
+    features: featuresList,
+    origin: qs("#pfOrigin").value.trim(),
+    packaging: qs("#pfPackaging").value.trim(),
+    shelf: qs("#pfShelf").value.trim()
+  };
+  var badgeVal = qs("#pfBadge").value;
+  if (badgeVal) productData.badge = badgeVal;
+  if (currentImageData) productData.image = currentImageData;
+
+  var submitBtn = qs("#productForm button[type=submit]");
+  submitBtn.disabled = true;
+  try{
+    await saveProduct(productData.id, productData);
+    await refreshProducts();
+    closeModal("productModal");
+    showToast(editId ? "Product updated." : "Product added.");
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+qs("#productSearch").addEventListener("input", renderProductTable);
+qs("#productCatFilter").addEventListener("change", renderProductTable);
+
+/* ============================================================
+   SUBCATEGORIES TAB
+   ============================================================ */
+function renderSubcatGroups(){
+  ["rice","restaurant"].forEach(function(cat){
+    var wrap = qs(cat === "rice" ? "#subcatGridRice" : "#subcatGridRestaurant");
+    var keys = Object.keys(subcats).filter(function(k){ return subcats[k].category === cat; });
+    if (keys.length === 0){
+      wrap.innerHTML = '<div class="empty-state" style="grid-column:1/-1; padding:26px;">No subcategories yet.</div>';
+      return;
+    }
+    wrap.innerHTML = keys.map(function(k){
+      var s = subcats[k];
+      var count = products.filter(function(p){ return p.subcategory === k; }).length;
+      return '<div class="subcat-card">' +
+        '<div class="top">' +
+          '<div class="subcat-icon" style="background:'+s.color+'"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#'+s.icon+'"/></svg></div>' +
+          '<div><div class="subcat-name">'+s.label+'</div><div class="subcat-count">'+count+' product'+(count===1?"":"s")+'</div></div>' +
+        '</div>' +
+        '<div class="actions">' +
+          '<button class="btn btn-outline btn-sm" data-edit-sub="'+k+'">Edit</button>' +
+          '<button class="btn btn-danger-outline btn-sm" data-delete-sub="'+k+'">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    qsa("[data-edit-sub]", wrap).forEach(function(btn){
+      btn.addEventListener("click", function(){ openSubcatForm(cat, btn.getAttribute("data-edit-sub")); });
+    });
+    qsa("[data-delete-sub]", wrap).forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var key = btn.getAttribute("data-delete-sub");
+        var affected = products.filter(function(p){ return p.subcategory === key; });
+        var count = affected.length;
+        var msg = count > 0
+          ? 'This subcategory has '+count+' product'+(count===1?"":"s")+'. Deleting it will also delete '+(count===1?"that product":"those products")+'. Continue?'
+          : "This subcategory has no products. Continue?";
+        askConfirm("Delete this subcategory?", msg, async function(){
+          for (var i = 0; i < affected.length; i++){ await deleteProductDoc(affected[i].id); }
+          await deleteSubcatDoc(key);
+          await refreshProducts();
+          await refreshSubcats();
+          showToast("Subcategory deleted.");
+        });
+      });
+    });
+  });
+}
+async function refreshSubcats(){
+  subcats = await loadSubcats();
+  renderSubcatGroups();
+}
+
+/* ---- subcategory form ---- */
+function renderIconPicker(selected){
+  qs("#iconPicker").innerHTML = ICON_CHOICES.map(function(ic){
+    return '<button type="button" class="icon-opt'+(ic===selected?" active":"")+'" data-icon="'+ic+'"><svg width="18" height="18" viewBox="0 0 24 24"><use href="#'+ic+'"/></svg></button>';
+  }).join("");
+  qsa("#iconPicker .icon-opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      qsa("#iconPicker .icon-opt").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+    });
+  });
+}
+function renderColorPicker(selected){
+  qs("#colorPicker").innerHTML = COLOR_CHOICES.map(function(c){
+    return '<button type="button" class="color-opt'+(c===selected?" active":"")+'" data-color="'+c.replace(/"/g,'&quot;')+'" style="background:'+c+'"></button>';
+  }).join("");
+  qsa("#colorPicker .color-opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      qsa("#colorPicker .color-opt").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+    });
+  });
+}
+
+function openSubcatForm(category, editKey){
+  var editing = !!editKey;
+  var s = editing ? subcats[editKey] : null;
+  qs("#subcatModalTitle").textContent = editing ? "Edit Subcategory" : "Add Subcategory";
+  qs("#subcatModalSub").textContent = "Under " + (category === "rice" ? "Rice" : "Restaurant Supplies");
+  qs("#sfKey").value = editKey || "";
+  qs("#sfCategory").value = category;
+  qs("#sfLabel").value = editing ? s.label : "";
+  renderIconPicker(editing ? s.icon : ICON_CHOICES[0]);
+  renderColorPicker(editing ? s.color : COLOR_CHOICES[0]);
+  openModal("subcatModal");
+}
+qsa("[data-add-sub]").forEach(function(btn){
+  btn.addEventListener("click", function(){ openSubcatForm(btn.getAttribute("data-add-sub"), null); });
+});
+qs("#closeSubcatModal").addEventListener("click", function(){ closeModal("subcatModal"); });
+qs("#cancelSubcatBtn").addEventListener("click", function(){ closeModal("subcatModal"); });
+
+qs("#subcatForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  var editKey = qs("#sfKey").value;
+  var category = qs("#sfCategory").value;
+  var label = qs("#sfLabel").value.trim();
+  var iconBtn = qs("#iconPicker .icon-opt.active");
+  var colorBtn = qs("#colorPicker .color-opt.active");
+  var icon = iconBtn ? iconBtn.getAttribute("data-icon") : ICON_CHOICES[0];
+  var color = colorBtn ? colorBtn.getAttribute("data-color") : COLOR_CHOICES[0];
+
+  var key = editKey || uniqueSubKey(slugify(label));
+  var data = {label:label, category: editKey ? subcats[editKey].category : category, icon:icon, color:color};
+
+  await saveSubcatDoc(key, data);
+  await refreshSubcats();
+  await refreshProducts();
+  closeModal("subcatModal");
+  showToast(editKey ? "Subcategory updated." : "Subcategory added.");
+});
+
+/* ============================================================
+   CONFIRM MODAL WIRING
+   ============================================================ */
+qs("#confirmCancelBtn").addEventListener("click", function(){ closeModal("confirmModal"); pendingConfirmAction = null; });
+qs("#confirmOkBtn").addEventListener("click", function(){
+  if (pendingConfirmAction) pendingConfirmAction();
+  pendingConfirmAction = null;
+  closeModal("confirmModal");
+});
+
+/* ============================================================
+   DATA TAB
+   ============================================================ */
+qs("#exportBtn").addEventListener("click", function(){
+  var payload = { products: products, subcategories: subcats, exportedAt: new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "royal-rice-catalog-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Catalog exported.");
+});
+
+qs("#importInput").addEventListener("change", function(e){
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      var data = JSON.parse(ev.target.result);
+      if (!data.products || !data.subcategories) throw new Error("Invalid file format");
+      askConfirm("Import this catalog?", "This will replace everything currently in Firestore, live on the site.", async function(){
+        await window.RoyalRiceDB.clearCollection("products");
+        await window.RoyalRiceDB.clearCollection("subcategories");
+        await window.RoyalRiceDB.batchSaveProducts(data.products);
+        await window.RoyalRiceDB.batchSaveSubcats(data.subcategories);
+        await refreshProducts();
+        await refreshSubcats();
+        showToast("Catalog imported successfully.");
+      });
+    }catch(err){
+      showToast("Import failed — invalid JSON file.", true);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+qs("#resetBtn").addEventListener("click", function(){
+  askConfirm("Reset to original catalog?", "This will wipe everything in Firestore and restore the site's built-in default catalog.", async function(){
+    await window.RoyalRiceDB.clearCollection("products");
+    await window.RoyalRiceDB.clearCollection("subcategories");
+    await seedDefaultCatalog();
+    await refreshProducts();
+    await refreshSubcats();
+    showToast("Catalog reset to defaults.");
+  });
+});
+
+qs("#seedBtn").addEventListener("click", async function(){
+  var btn = qs("#seedBtn");
+  btn.disabled = true;
+  try{
+    await seedDefaultCatalog();
+    await refreshProducts();
+    await refreshSubcats();
+    showToast("Starting catalog loaded.");
+  }catch(e){
+    showToast("Seeding failed — check your connection.", true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+var _appInitialized = false;
+async function initApp(){
+  if (!_appInitialized){
+    _appInitialized = true;
+    overlay = qs("#overlay");
+    overlay.addEventListener("click", closeAllModals);
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeAllModals(); });
+    bindTabs();
+  }
+  await refreshProducts();
+  await refreshSubcats();
+}
+
+})();
+</script>
+</body>
+</html>
